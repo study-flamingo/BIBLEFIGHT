@@ -1,0 +1,38 @@
+[project]
+name = "BIBLEFIGHT-mcp"
+version = "0.1.0"
+description = "BIBLEFIGHT! MCP server"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.10.0",
+    "httpx>=0.28.1",
+    "pydantic>=2.11.7",
+    "python-dotenv>=1.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=0.23.8",
+    "ruff>=0.12.8",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["BIBLEFIGHT*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["src"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

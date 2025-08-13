@@ -1,0 +1,2279 @@
+{
+    "info": {
+        "title": "API.Bible",
+        "version": "1.6.3",
+        "contact": {
+            "name": "support@api.bible"
+        },
+        "description": "",
+        "termsOfService": "https://docs.api.bible/terms-and-conditions"
+    },
+    "schemes": [
+        "https"
+    ],
+    "host": "api.scripture.api.bible",
+    "swagger": "2.0",
+    "paths": {
+        "/v1/bibles": {
+            "get": {
+                "operationId": "getBibles",
+                "tags": [
+                    "Bibles"
+                ],
+                "description": "Gets an array of `Bible` objects authorized for current API Key\n",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "language",
+                        "description": "ISO 639-3 three digit language code used to filter results",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "abbreviation",
+                        "description": "Bible abbreviation to search for",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "Bible name to search for",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "ids",
+                        "description": "Comma separated list of Bible Ids to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "include-full-details",
+                        "description": "Boolean to include full Bible details (e.g. copyright and promo info)",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/BibleSummary"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Not authorized to retrieve any Bibles or invalid language_code provided"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Key provided."
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}": {
+            "get": {
+                "operationId": "getBible",
+                "tags": [
+                    "Bibles"
+                ],
+                "description": "Gets a single `Bible` for a given `bibleId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/Bible"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve this Bible"
+                    },
+                    "404": {
+                        "description": "Bible not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/books": {
+            "get": {
+                "operationId": "getBooks",
+                "tags": [
+                    "Books"
+                ],
+                "description": "Gets an array of `Book` objects for a given `bibleId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Book to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/includeChapters"
+                    },
+                    {
+                        "$ref": "#/parameters/includeChaptersAndSections"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Book"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Books for this Bible"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/books/{bookId}": {
+            "get": {
+                "operationId": "getBook",
+                "tags": [
+                    "Books"
+                ],
+                "description": "Gets a single `Book` object for a given `bibleId` and `bookId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Book to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "bookId",
+                        "description": "Id of the Book to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/includeChapters"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/Book"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Books for this Bible"
+                    },
+                    "404": {
+                        "description": "Book not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/books/{bookId}/chapters": {
+            "get": {
+                "operationId": "getChapters",
+                "tags": [
+                    "Chapters"
+                ],
+                "description": "Gets an array of `Chapter` objects for a given `bibleId` and `bookId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Chapters to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "bookId",
+                        "description": "Id of the Book whose Chapters to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/ChapterSummary"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Chapters for this Bible"
+                    },
+                    "404": {
+                        "description": "Book not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/chapters/{chapterId}": {
+            "get": {
+                "operationId": "getChapter",
+                "tags": [
+                    "Chapters"
+                ],
+                "description": "Gets a single `Chapter` object for a given `bibleId` and `chapterId`.\nThis Chapter object also includes an `content` property with all verses for the Chapter.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Chapter to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "chapterId",
+                        "description": "Id of the Chapter to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/contentType"
+                    },
+                    {
+                        "$ref": "#/parameters/footnotes"
+                    },
+                    {
+                        "$ref": "#/parameters/sectionTitles"
+                    },
+                    {
+                        "$ref": "#/parameters/chapterNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseSpans"
+                    },
+                    {
+                        "$ref": "#/parameters/parallels"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data",
+                                "meta"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/Chapter"
+                                },
+                                "meta": {
+                                    "$ref": "#/definitions/Meta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Chapters for this Bible"
+                    },
+                    "404": {
+                        "description": "Chapter not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/passages/{passageId}": {
+            "get": {
+                "operationId": "getPassage",
+                "tags": [
+                    "Passages"
+                ],
+                "description": "Gets a `Passage` object for a given `bibleId` and `passageId`. This\nPassage object also includes an `content` property with all verses\ncorresponding to the passageId.\nThe `passageId` parameter can represent a chapter, verse, or range of verses.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible for passage",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "passageId",
+                        "description": "String reference id for the requested passage.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/contentType"
+                    },
+                    {
+                        "$ref": "#/parameters/footnotes"
+                    },
+                    {
+                        "$ref": "#/parameters/sectionTitles"
+                    },
+                    {
+                        "$ref": "#/parameters/chapterNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseSpans"
+                    },
+                    {
+                        "$ref": "#/parameters/parallels"
+                    },
+                    {
+                        "$ref": "#/parameters/useOrgId"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data",
+                                "meta"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/Passage"
+                                },
+                                "meta": {
+                                    "$ref": "#/definitions/Meta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Sections for this Bible"
+                    },
+                    "404": {
+                        "description": "Passage not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/books/{bookId}/sections": {
+            "get": {
+                "operationId": "getBookSections",
+                "tags": [
+                    "Sections"
+                ],
+                "description": "Gets an array of `Section` objects for a given `bibleId` and `bookId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Sections to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "bookId",
+                        "description": "Id of the Book whose Sections to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/SectionSummary"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Sections for this Bible"
+                    },
+                    "404": {
+                        "description": "Book not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/chapters/{chapterId}/sections": {
+            "get": {
+                "operationId": "getChapterSections",
+                "tags": [
+                    "Sections"
+                ],
+                "description": "Gets an array of `Section` objects for a given `bibleId` and `chapterId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Sections to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "chapterId",
+                        "description": "Id of the Chapter whose Sections to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/SectionSummary"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Sections for this Bible"
+                    },
+                    "404": {
+                        "description": "Book not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/sections/{sectionId}": {
+            "get": {
+                "operationId": "getSection",
+                "tags": [
+                    "Sections"
+                ],
+                "description": "Gets a single `Section` object for a given `bibleId` and `sectionId`. This Section\nobject also includes an `content` property with all verses for the Section.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Section to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "sectionId",
+                        "description": "Id of the Section to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/contentType"
+                    },
+                    {
+                        "$ref": "#/parameters/footnotes"
+                    },
+                    {
+                        "$ref": "#/parameters/sectionTitles"
+                    },
+                    {
+                        "$ref": "#/parameters/chapterNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseSpans"
+                    },
+                    {
+                        "$ref": "#/parameters/parallels"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data",
+                                "meta"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/Section"
+                                },
+                                "meta": {
+                                    "$ref": "#/definitions/Meta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Sections for this Bible"
+                    },
+                    "404": {
+                        "description": "Section not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/chapters/{chapterId}/verses": {
+            "get": {
+                "operationId": "getVerses",
+                "tags": [
+                    "Verses"
+                ],
+                "description": "Gets an array of `Verse` objects for a given `bibleId` and `chapterId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible whose Verses to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "chapterId",
+                        "description": "Id of the Chapter whose Verses to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/VerseSummary"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Sections for this Bible"
+                    },
+                    "404": {
+                        "description": "Book not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/verses/{verseId}": {
+            "get": {
+                "operationId": "getVerse",
+                "tags": [
+                    "Verses"
+                ],
+                "description": "Gets a `Verse` object for a given `bibleId` and `verseId`. This\nVerse object also includes an `content` property with the verse\ncorresponding to the verseId.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible for passage",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "verseId",
+                        "description": "String reference id for the requested verse.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/contentType"
+                    },
+                    {
+                        "$ref": "#/parameters/footnotes"
+                    },
+                    {
+                        "$ref": "#/parameters/sectionTitles"
+                    },
+                    {
+                        "$ref": "#/parameters/chapterNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseNumbers"
+                    },
+                    {
+                        "$ref": "#/parameters/verseSpans"
+                    },
+                    {
+                        "$ref": "#/parameters/parallels"
+                    },
+                    {
+                        "$ref": "#/parameters/useOrgId"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data",
+                                "meta"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/Verse"
+                                },
+                                "meta": {
+                                    "$ref": "#/definitions/Meta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Sections for this Bible"
+                    },
+                    "404": {
+                        "description": "Passage not found"
+                    }
+                }
+            }
+        },
+        "/v1/bibles/{bibleId}/search": {
+            "get": {
+                "operationId": "searchBible",
+                "tags": [
+                    "Search"
+                ],
+                "description": "Gets search results for a given `bibleId` and query string.  Searches\nwill match all verses with the list of keywords provided in the query string.\nOrder of the keywords does not matter. However all keywords must be\npresent in a verse for it to be considered a match.\nThe total number of results returned from a search can be limited by populating the `limit`\nattribute in the query string with a non-negative integer value.  If no\nlimit value is provide a default of 10 is used.\n`offset` can be used to traverse paginated results.  So for example if you are using\nthe default `limit` of 10, using an `offset` of 10 will return the second page of results,\nnamely results 11-20.\nThe `text` property of each verse object contains only the verse text.  It does not\ncontain footnote references. However, those can be queried directly using the\n`/bibles/{bibleId}/verses/{verseId}` endpoint.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bibleId",
+                        "description": "Id of Bible to search",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "query",
+                        "description": "Search keywords or passage reference.  Supported wildcards are * and ?.  \nThe * wildcard matches any character sequence (e.g. searching for \"wo*d\" finds text such as \"word\", \"world\", and \"worshipped\").  \nThe ? wildcard matches any matches any single character (e.g. searching for \"l?ve\" finds text such as \"live\" and \"love\").\n",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Integer limit for how many matching results to return. Default is 10.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Offset for search results. Used to paginate results",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sort",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "relevance",
+                            "canonical",
+                            "reverse-canonical"
+                        ],
+                        "description": "Sort order of results.  Supported values are `relevance` (default), `canonical` and `reverse-canonical`",
+                        "default": "relevance"
+                    },
+                    {
+                        "in": "query",
+                        "name": "range",
+                        "type": "string",
+                        "required": false,
+                        "description": "One or more, comma seperated, passage ids (book, chapter, verse) which the search will be limited to.  (i.e. gen.1,gen.5 or gen-num or gen.1.1-gen.3.5)\n"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fuzziness",
+                        "type": "string",
+                        "enum": [
+                            "AUTO",
+                            "0",
+                            "1",
+                            "2"
+                        ],
+                        "required": false,
+                        "description": "Sets the fuzziness of a search to account for misspellings. Values can be 0, 1, 2, or AUTO. Defaults to AUTO which varies depending on the\n"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data",
+                                "meta"
+                            ],
+                            "properties": {
+                                "query": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/SearchResponse"
+                                },
+                                "meta": {
+                                    "$ref": "#/definitions/Meta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Sections for this Bible"
+                    },
+                    "404": {
+                        "description": "Section not found"
+                    }
+                }
+            }
+        },
+        "/v1/audio-bibles": {
+            "get": {
+                "operationId": "getAudioBibles",
+                "tags": [
+                    "Bibles"
+                ],
+                "description": "Gets an array of audio `Bible` objects authorized for current API Key\n",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "language",
+                        "description": "ISO 639-3 three digit language code used to filter results",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "abbreviation",
+                        "description": "Bible abbreviation to search for",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "Bible name to search for",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "ids",
+                        "description": "Comma separated list of Bible Ids to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "bibleId",
+                        "description": "bibleId of related text Bible used to filter audio bible results",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "include-full-details",
+                        "description": "Boolean to include full Bible details (e.g. copyright and promo info)",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/BibleSummary"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Not authorized to retrieve any Bibles or invalid language_code provided"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Key provided."
+                    }
+                }
+            }
+        },
+        "/v1/audio-bibles/{audioBibleId}": {
+            "get": {
+                "operationId": "getAudioBible",
+                "tags": [
+                    "Bibles"
+                ],
+                "description": "Gets a single audio `Bible` for a given `audioBibleId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "audioBibleId",
+                        "description": "Id of audio Bible to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/AudioBible"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve this Bible"
+                    },
+                    "404": {
+                        "description": "Bible not found"
+                    }
+                }
+            }
+        },
+        "/v1/audio-bibles/{audioBibleId}/books": {
+            "get": {
+                "operationId": "getAudioBooks",
+                "tags": [
+                    "Books"
+                ],
+                "description": "Gets an array of `Book` objects for a given `audioBibleId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "audioBibleId",
+                        "description": "Id of audio Bible whose Book to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/includeChapters"
+                    },
+                    {
+                        "$ref": "#/parameters/includeChaptersAndSections"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Book"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Books for this Bible"
+                    }
+                }
+            }
+        },
+        "/v1/audio-bibles/{audioBibleId}/books/{bookId}": {
+            "get": {
+                "operationId": "getAudioBook",
+                "tags": [
+                    "Books"
+                ],
+                "description": "Gets a single `Book` object for a given `audioBibleId` and `bookId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "audioBibleId",
+                        "description": "Id of audio Bible whose Book to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "bookId",
+                        "description": "Id of the Book to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/includeChapters"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/Book"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Books for this Bible"
+                    },
+                    "404": {
+                        "description": "Book not found"
+                    }
+                }
+            }
+        },
+        "/v1/audio-bibles/{audioBibleId}/books/{bookId}/chapters": {
+            "get": {
+                "operationId": "getAudioChapters",
+                "tags": [
+                    "Chapters"
+                ],
+                "description": "Gets an array of `Chapter` objects for a given `audioBibleId` and `bookId`\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "audioBibleId",
+                        "description": "Id of Bible whose Chapters to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "bookId",
+                        "description": "Id of the Book whose Chapters to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/ChapterSummary"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Chapters for this Bible"
+                    },
+                    "404": {
+                        "description": "Book not found"
+                    }
+                }
+            }
+        },
+        "/v1/audio-bibles/{audioBibleId}/chapters/{chapterId}": {
+            "get": {
+                "operationId": "getAudioChapter",
+                "tags": [
+                    "Chapters"
+                ],
+                "description": "Gets a single `Chapter` object for a given `audioBibleId` and `chapterId`.\nThis AudioChapter object also includes an `resourceUrl` property with a HTTP URL\nto the mp3 audio resource for the chapter.  The `resourceUrl` is unique per request\nand expires in XX minutes.  The `expiresAt` property provides the Unix time value of\n`resourceUrl` expiration.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "audioBibleId",
+                        "description": "Id of Bible whose Chapter to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "chapterId",
+                        "description": "Id of the Chapter to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "data",
+                                "meta"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/AudioChapter"
+                                },
+                                "meta": {
+                                    "$ref": "#/definitions/Meta"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied"
+                    },
+                    "401": {
+                        "description": "Unauthorized for API access.  Missing or Invalid API Token provided."
+                    },
+                    "403": {
+                        "description": "Not authorized to retrieve Chapters for this Bible"
+                    },
+                    "404": {
+                        "description": "Chapter not found"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Meta": {
+            "type": "object",
+            "required": [
+                "fums",
+                "fumsId",
+                "fumsJsInclude",
+                "fumsJs",
+                "fumsNoScript"
+            ],
+            "properties": {
+                "fums": {
+                    "type": "string"
+                },
+                "fumsId": {
+                    "type": "string"
+                },
+                "fumsJsInclude": {
+                    "type": "string"
+                },
+                "fumsJs": {
+                    "type": "string"
+                },
+                "fumsNoScript": {
+                    "type": "string"
+                }
+            }
+        },
+        "BibleSummary": {
+            "type": "object",
+            "required": [
+                "id",
+                "dblId",
+                "abbreviation",
+                "abbreviationLocal",
+                "language",
+                "countries",
+                "name",
+                "nameLocal",
+                "description",
+                "descriptionLocal",
+                "relatedDbl",
+                "updatedAt",
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "dblId": {
+                    "type": "string"
+                },
+                "abbreviation": {
+                    "type": "string"
+                },
+                "abbreviationLocal": {
+                    "type": "string"
+                },
+                "language": {
+                    "$ref": "#/definitions/Language"
+                },
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "name",
+                            "nameLocal"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "nameLocal": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nameLocal": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "descriptionLocal": {
+                    "type": "string"
+                },
+                "relatedDbl": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "audioBibles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AudioBibleSummary"
+                    }
+                }
+            }
+        },
+        "AudioBibleSummary": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "nameLocal",
+                "description",
+                "descriptionLocal"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nameLocal": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "descriptionLocal": {
+                    "type": "string"
+                }
+            }
+        },
+        "Bible": {
+            "type": "object",
+            "required": [
+                "id",
+                "dblId",
+                "abbreviation",
+                "abbreviationLocal",
+                "copyright",
+                "language",
+                "countries",
+                "name",
+                "nameLocal",
+                "description",
+                "descriptionLocal",
+                "info",
+                "type",
+                "updatedAt",
+                "relatedDbl",
+                "audioBibles"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "dblId": {
+                    "type": "string"
+                },
+                "abbreviation": {
+                    "type": "string"
+                },
+                "abbreviationLocal": {
+                    "type": "string"
+                },
+                "copyright": {
+                    "type": "string"
+                },
+                "language": {
+                    "$ref": "#/definitions/Language",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "nameLocal": {
+                            "type": "string"
+                        },
+                        "script": {
+                            "type": "string"
+                        },
+                        "scriptDirection": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "name",
+                            "nameLocal"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "nameLocal": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nameLocal": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "descriptionLocal": {
+                    "type": "string"
+                },
+                "info": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "relatedDbl": {
+                    "type": "string"
+                },
+                "audioBibles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AudioBibleSummary"
+                    }
+                }
+            }
+        },
+        "Book": {
+            "type": "object",
+            "required": [
+                "id",
+                "bibleId",
+                "name",
+                "nameLong",
+                "abbreviation"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "abbreviation": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nameLong": {
+                    "type": "string"
+                },
+                "chapters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ChapterSummary"
+                    }
+                }
+            }
+        },
+        "ChapterSummary": {
+            "type": "object",
+            "required": [
+                "id",
+                "bibleId",
+                "number",
+                "bookId",
+                "reference"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "Chapter": {
+            "type": "object",
+            "required": [
+                "id",
+                "bibleId",
+                "number",
+                "bookId",
+                "content",
+                "reference",
+                "verseCount",
+                "copyright"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "verseCount": {
+                    "type": "integer"
+                },
+                "next": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "bookId": {
+                            "type": "string"
+                        },
+                        "number": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "previous": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "bookId": {
+                            "type": "string"
+                        },
+                        "number": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "copyright": {
+                    "type": "string"
+                }
+            }
+        },
+        "Language": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "nameLocal",
+                "script",
+                "scriptDirection"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nameLocal": {
+                    "type": "string"
+                },
+                "script": {
+                    "type": "string"
+                },
+                "scriptDirection": {
+                    "type": "string"
+                }
+            }
+        },
+        "Passage": {
+            "type": "object",
+            "required": [
+                "id",
+                "bibleId",
+                "orgId",
+                "content",
+                "reference",
+                "verseCount",
+                "copyright"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "verseCount": {
+                    "type": "integer"
+                },
+                "copyright": {
+                    "type": "string"
+                }
+            }
+        },
+        "Verse": {
+            "type": "object",
+            "required": [
+                "id",
+                "orgId",
+                "bibleId",
+                "bookId",
+                "chapterId",
+                "content",
+                "reference",
+                "verseCount",
+                "copyright"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "chapterId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "verseCount": {
+                    "type": "integer"
+                },
+                "copyright": {
+                    "type": "string"
+                },
+                "next": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "bookId": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "previous": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "bookId": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "SectionSummary": {
+            "type": "object",
+            "required": [
+                "id",
+                "bibleId",
+                "bookId",
+                "title",
+                "firstVerseId",
+                "lastVerseId",
+                "firstVerseOrgId",
+                "lastVerseOrgId"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "firstVerseId": {
+                    "type": "string"
+                },
+                "lastVerseId": {
+                    "type": "string"
+                },
+                "firstVerseOrgId": {
+                    "type": "string"
+                },
+                "lastVerseOrgId": {
+                    "type": "string"
+                }
+            }
+        },
+        "Section": {
+            "type": "object",
+            "required": [
+                "id",
+                "bibleId",
+                "bookId",
+                "chapterId",
+                "title",
+                "content",
+                "verseCount",
+                "firstVerseId",
+                "lastVerseId",
+                "firstVerseOrgId",
+                "lastVerseOrgId",
+                "copyright"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "chapterId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "verseCount": {
+                    "type": "integer"
+                },
+                "firstVerseId": {
+                    "type": "string"
+                },
+                "lastVerseId": {
+                    "type": "string"
+                },
+                "firstVerseOrgId": {
+                    "type": "string"
+                },
+                "lastVerseOrgId": {
+                    "type": "string"
+                },
+                "copyright": {
+                    "type": "string"
+                },
+                "next": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "previous": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "VerseSummary": {
+            "type": "object",
+            "required": [
+                "id",
+                "orgId",
+                "bibleId",
+                "bookId",
+                "chapterId",
+                "reference"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "chapterId": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "SearchVerse": {
+            "type": "object",
+            "required": [
+                "id",
+                "orgId",
+                "bibleId",
+                "bookId",
+                "chapterId",
+                "text"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "chapterId": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "SearchResponse": {
+            "type": "object",
+            "required": [
+                "query",
+                "limit",
+                "offset",
+                "total",
+                "verseCount",
+                "verses"
+            ],
+            "properties": {
+                "query": {
+                    "type": "string"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "verseCount": {
+                    "type": "integer"
+                },
+                "verses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/SearchVerse"
+                    }
+                },
+                "passages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Passage"
+                    }
+                }
+            }
+        },
+        "AudioBible": {
+            "type": "object",
+            "required": [
+                "id",
+                "dblId",
+                "abbreviation",
+                "abbreviationLocal",
+                "copyright",
+                "language",
+                "countries",
+                "name",
+                "nameLocal",
+                "description",
+                "descriptionLocal",
+                "info",
+                "type",
+                "updatedAt",
+                "relatedDbl"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "dblId": {
+                    "type": "string"
+                },
+                "abbreviation": {
+                    "type": "string"
+                },
+                "abbreviationLocal": {
+                    "type": "string"
+                },
+                "copyright": {
+                    "type": "string"
+                },
+                "language": {
+                    "$ref": "#/definitions/Language"
+                },
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "name",
+                            "nameLocal"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "nameLocal": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nameLocal": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "descriptionLocal": {
+                    "type": "string"
+                },
+                "info": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "relatedDbl": {
+                    "type": "string"
+                }
+            }
+        },
+        "AudioChapter": {
+            "type": "object",
+            "required": [
+                "id",
+                "bibleId",
+                "number",
+                "bookId",
+                "resourceUrl",
+                "expiresAt",
+                "reference"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "bibleId": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "bookId": {
+                    "type": "string"
+                },
+                "resourceUrl": {
+                    "type": "string"
+                },
+                "timecodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "end",
+                            "start",
+                            "verseId"
+                        ],
+                        "properties": {
+                            "end": {
+                                "type": "string"
+                            },
+                            "start": {
+                                "type": "string"
+                            },
+                            "verseId": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "expiresAt": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "next": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "bookId": {
+                            "type": "string"
+                        },
+                        "number": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "previous": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "bookId": {
+                            "type": "string"
+                        },
+                        "number": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "copyright": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "responses": {},
+    "parameters": {
+        "includeChapters": {
+            "in": "query",
+            "name": "include-chapters",
+            "description": "Boolean indicating if an array of chapter summaries should be\nincluded in the results. Defaults to false.\n",
+            "required": false,
+            "type": "boolean"
+        },
+        "includeChaptersAndSections": {
+            "in": "query",
+            "name": "include-chapters-and-sections",
+            "description": "Boolean indicating if an array of chapter summaries and an array\nof sections should be included in the results. Defaults to false.\n",
+            "required": false,
+            "type": "boolean"
+        },
+        "parallels": {
+            "in": "query",
+            "name": "parallels",
+            "required": false,
+            "type": "string",
+            "description": "Comma delimited list of bibleIds to include"
+        },
+        "contentType": {
+            "in": "query",
+            "name": "content-type",
+            "required": false,
+            "type": "string",
+            "enum": [
+                "html",
+                "json",
+                "text"
+            ],
+            "description": "Content type to be returned in the content property.  Supported values are `html` (default), `json` (beta), and `text` (beta)",
+            "default": "html"
+        },
+        "footnotes": {
+            "in": "query",
+            "name": "include-notes",
+            "required": false,
+            "type": "boolean",
+            "description": "Include footnotes in content",
+            "default": false
+        },
+        "sectionTitles": {
+            "in": "query",
+            "name": "include-titles",
+            "required": false,
+            "type": "boolean",
+            "description": "Include section titles in content",
+            "default": true
+        },
+        "chapterNumbers": {
+            "in": "query",
+            "name": "include-chapter-numbers",
+            "required": false,
+            "type": "boolean",
+            "description": "Include chapter numbers in content",
+            "default": false
+        },
+        "verseSpans": {
+            "in": "query",
+            "name": "include-verse-spans",
+            "required": false,
+            "type": "boolean",
+            "description": "Include spans that wrap verse numbers and verse text for bible content.",
+            "default": false
+        },
+        "verseNumbers": {
+            "in": "query",
+            "name": "include-verse-numbers",
+            "required": false,
+            "type": "boolean",
+            "description": "Include verse numbers in content.",
+            "default": true
+        },
+        "useOrgId": {
+            "in": "query",
+            "name": "use-org-id",
+            "required": false,
+            "type": "boolean",
+            "description": "Use the supplied id(s) to match the verseOrgId instead of the verseId",
+            "default": false
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "api-key",
+            "x-data-threescale-name": "user_keys"
+        }
+    },
+    "security": [
+        {
+            "ApiKeyAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Bibles",
+            "description": "Fetch Bibles and metadata"
+        },
+        {
+            "name": "Books",
+            "description": "Fetch Books for a Bible"
+        },
+        {
+            "name": "Chapters",
+            "description": "Fetch Chapters for a Bible"
+        },
+        {
+            "name": "Sections",
+            "description": "Fetch Sections for a Bible (Experimental)"
+        },
+        {
+            "name": "Passages",
+            "description": "Fetch a Passage for a Bible"
+        },
+        {
+            "name": "Verses",
+            "description": "Fetch Verses for a Bible"
+        },
+        {
+            "name": "Search",
+            "description": "Search by keyword or reference"
+        },
+        {
+            "name": "Audio Bibles",
+            "description": "Fetch Audio Bibles and metadata"
+        },
+        {
+            "name": "Audio Books",
+            "description": "Fetch Books for a Audio Bible"
+        },
+        {
+            "name": "Audio Chapters",
+            "description": "Fetch Chapters for a Audio Bible"
+        }
+    ]
+}
