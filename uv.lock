@@ -47,7 +47,7 @@ wheels = [
 ]
 
 [[package]]
-name = "biblefight"
+name = "biblefight-mcp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

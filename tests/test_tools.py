@@ -142,3 +142,59 @@ async def test_analyze_claim_empty_claim_via_client(monkeypatch: pytest.MonkeyPa
         assert payload.get("error") == "Empty claim"
 
 
+
+@pytest.mark.asyncio
+async def test_analyze_claim_fallback_when_no_sampling_or_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure analyze_claim returns content using deterministic fallback when both
+    API.Bible search (no key) and sampling are unavailable (return empty).
+    """
+    import BIBLEFIGHT.server as srv  # type: ignore
+
+    # Disable API key path
+    monkeypatch.setattr(srv.settings, "BIBLE_API_KEY", None, raising=False)
+
+    # Force LLM extractors to return nothing
+    async def stub_extract(claim: str, ctx: Any) -> list[str]:  # noqa: ANN401
+        return []
+
+    async def stub_challengers(claim: str, ctx: Any) -> list[str]:  # noqa: ANN401
+        return []
+
+    # Stub passage fetcher to avoid network and return predictable content
+    async def stub_fetch(client: Any, reference: str, translation: str, context_n: int) -> dict[str, Any] | None:  # noqa: ANN401
+        return {
+            "reference": reference,
+            "text": f"Text for {reference}",
+            "translation": translation,
+            "raw": {"verses": [{"text": "stub"}]},
+        }
+
+    monkeypatch.setattr(srv, "extract_references_via_llm", stub_extract)
+    monkeypatch.setattr(srv, "propose_challengers", stub_challengers)
+    monkeypatch.setattr(srv, "fetch_passage_with_context", stub_fetch)
+
+    from fastmcp import Client  # type: ignore
+    from fastmcp.client.transports import FastMCPTransport  # type: ignore
+
+    transport = FastMCPTransport(srv.mcp)
+    async with Client(transport) as client:
+        args = {
+            "claim": "Money is the root of all evil",
+            "translation": "kjv",
+            "context_verses": 7,
+            "include_snippets": True,
+            "snippet_chars": 50,
+            "include_supporting": True,
+            "include_challengers": True,
+        }
+        resp = await client.call_tool("analyze_claim", {"args": args})
+        payload = _parse_payload(resp)
+        assert isinstance(payload, dict)
+        candidates = payload.get("candidates") or []
+        challengers = payload.get("challengers") or []
+        assert isinstance(candidates, list) and len(candidates) > 0
+        assert isinstance(challengers, list) and len(challengers) > 0
+        for p in (candidates + challengers):
+            assert "text" in p
+            assert "snippet" in p
+            assert p.get("snippet_chars") == 50

@@ -9,20 +9,132 @@ from fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
 
 from .settings import Settings
-from .logging_setup import ensure_logging_configured
 
 
 settings = Settings()
-ensure_logging_configured(settings.LOG_LEVEL)
-log = logging.getLogger("biblefight.server")
+logger = logging.getLogger("BIBLEFIGHT")
 mcp = FastMCP(
-    name="Bible Fight!",
+    name="BIBLEFIGHT",
     instructions=(
-        "Evaluate user claims against Scripture. Find likely passages, provide context, "
-        "and surface challenging or contradicting verses."
+        """Evaluate claims against The Bible. Find likely source passages, provide context,
+        and give challenging or contradicting verses. Or, look up a passage by translation,
+        book, chapter, and/or verse."""
     ),
 )
 
+
+# Mapping of API.Bible/USFM book codes to human-readable names for bible-api.com
+USFM_TO_BOOK: dict[str, str] = {
+    # Old Testament
+    "GEN": "Genesis",
+    "EXO": "Exodus",
+    "LEV": "Leviticus",
+    "NUM": "Numbers",
+    "DEU": "Deuteronomy",
+    "JOS": "Joshua",
+    "JDG": "Judges",
+    "RUT": "Ruth",
+    "1SA": "1 Samuel",
+    "2SA": "2 Samuel",
+    "1KI": "1 Kings",
+    "2KI": "2 Kings",
+    "1CH": "1 Chronicles",
+    "2CH": "2 Chronicles",
+    "EZR": "Ezra",
+    "NEH": "Nehemiah",
+    "EST": "Esther",
+    "JOB": "Job",
+    "PSA": "Psalms",
+    "PRO": "Proverbs",
+    "ECC": "Ecclesiastes",
+    "SNG": "Song of Solomon",
+    "ISA": "Isaiah",
+    "JER": "Jeremiah",
+    "LAM": "Lamentations",
+    "EZK": "Ezekiel",
+    "DAN": "Daniel",
+    "HOS": "Hosea",
+    "JOL": "Joel",
+    "AMO": "Amos",
+    "OBA": "Obadiah",
+    "JON": "Jonah",
+    "MIC": "Micah",
+    "NAM": "Nahum",
+    "HAB": "Habakkuk",
+    "ZEP": "Zephaniah",
+    "HAG": "Haggai",
+    "ZEC": "Zechariah",
+    "MAL": "Malachi",
+    # New Testament
+    "MAT": "Matthew",
+    "MRK": "Mark",
+    "LUK": "Luke",
+    "JHN": "John",
+    "ACT": "Acts",
+    "ROM": "Romans",
+    "1CO": "1 Corinthians",
+    "2CO": "2 Corinthians",
+    "GAL": "Galatians",
+    "EPH": "Ephesians",
+    "PHP": "Philippians",
+    "COL": "Colossians",
+    "1TH": "1 Thessalonians",
+    "2TH": "2 Thessalonians",
+    "1TI": "1 Timothy",
+    "2TI": "2 Timothy",
+    "TIT": "Titus",
+    "PHM": "Philemon",
+    "HEB": "Hebrews",
+    "JAS": "James",
+    "1PE": "1 Peter",
+    "2PE": "2 Peter",
+    "1JN": "1 John",
+    "2JN": "2 John",
+    "3JN": "3 John",
+    "JUD": "Jude",
+    "REV": "Revelation",
+}
+
+
+def _normalize_api_bible_id(id_str: str) -> str | None:
+    """Convert API.Bible verseId/passageId like 'JHN.3.16' or ranges into a
+    bible-api.com compatible reference like 'John 3:16' or 'John 3:16-18'.
+
+    Handles simple same-book same-chapter ranges. If books or chapters differ,
+    returns a two-sided range like 'John 3:16-John 4:2'.
+    """
+    if not id_str:
+        return None
+    # Examples: JHN.3.16 or JHN.3.16-JHN.3.18
+    try:
+        parts = id_str.split("-")
+        def parse(p: str) -> tuple[str, int, int] | None:
+            segs = p.split(".")
+            if len(segs) != 3:
+                return None
+            book_code, ch_str, vs_str = segs[0].strip().upper(), segs[1], segs[2]
+            book = USFM_TO_BOOK.get(book_code)
+            if not book:
+                return None
+            return (book, int(ch_str), int(vs_str))
+
+        left = parse(parts[0])
+        if not left:
+            return None
+        if len(parts) == 1:
+            book, ch, vs = left
+            return f"{book} {ch}:{vs}"
+        right = parse(parts[1])
+        if not right:
+            return None
+        l_book, l_ch, l_vs = left
+        r_book, r_ch, r_vs = right
+        if l_book == r_book and l_ch == r_ch:
+            return f"{l_book} {l_ch}:{l_vs}-{r_vs}"
+        # Cross-chapter or cross-book range
+        return f"{l_book} {l_ch}:{l_vs}-{r_book} {r_ch}:{r_vs}"
+    except Exception:
+        return None
 
 class AnalyzeClaimArgs(BaseModel):
     claim: str = Field(
@@ -119,7 +231,7 @@ async def analyze_claim(args: AnalyzeClaimArgs, ctx: Context) -> dict[str, Any]:
 
     claim = args.claim.strip()
     if not claim:
-        log.warning("Empty claim provided")
+        logger.warning("Empty claim provided")
         return {"error": "Empty claim"}
 
     translation = (args.translation or settings.DEFAULT_TRANSLATION).lower()
@@ -139,12 +251,12 @@ async def analyze_claim(args: AnalyzeClaimArgs, ctx: Context) -> dict[str, Any]:
         settings.DEFAULT_INCLUDE_CHALLENGERS if args.include_challengers is None else bool(args.include_challengers)
     )
 
-    log.info("Analyze claim: '%s' | translation=%s context=%d snippets=%s", claim, translation, context_n, snippet_limit)
+    logger.info("Analyze claim: '%s' | translation=%s context=%d snippets=%s", claim, translation, context_n, snippet_limit)
     # Step 1: candidate references
     candidate_refs: list[str] = []
     if settings.BIBLE_API_KEY:
         try:
-            log.debug("Searching API.Bible for candidates…")
+            logger.debug("Searching API.Bible for candidates…")
             candidate_refs = await search_candidates_api_bible(
                 query=claim,
                 cfg=settings,
@@ -154,13 +266,17 @@ async def analyze_claim(args: AnalyzeClaimArgs, ctx: Context) -> dict[str, Any]:
                 limit=args.search_limit,
                 offset=args.search_offset,
             )
-        except Exception as e:  # Fallback to LLM extraction
+        except Exception as e:  # Fallback to LLM extraction, then heuristic
             await ctx.warning(f"API.Bible search failed; falling back. {e}")
-            log.exception("API.Bible search failed")
+            logger.exception("API.Bible search failed")
             candidate_refs = await extract_references_via_llm(claim, ctx)
+            if not candidate_refs:
+                candidate_refs = _fallback_candidate_refs(claim, settings.DEFAULT_MAX_RESULTS)
     else:
-        log.debug("No API key; extracting references via LLM sampling")
+        logger.debug("No API key; extracting references via LLM sampling")
         candidate_refs = await extract_references_via_llm(claim, ctx)
+        if not candidate_refs:
+            candidate_refs = _fallback_candidate_refs(claim, settings.DEFAULT_MAX_RESULTS)
 
     # Deduplicate and cap
     seen = set()
@@ -171,12 +287,12 @@ async def analyze_claim(args: AnalyzeClaimArgs, ctx: Context) -> dict[str, Any]:
             seen.add(key)
             unique_refs.append(r)
     candidate_refs = unique_refs[: max(1, int(settings.DEFAULT_MAX_RESULTS))]
-    log.info("Candidate refs: %s", candidate_refs)
+    logger.info("Candidate refs: %s", candidate_refs)
 
     # Step 2: fetch supporting passages + context from bible-api.com
     passages: list[dict[str, Any]] = []
     if include_supporting:
-        log.info("Fetching supporting passages (%d)…", len(candidate_refs))
+        logger.info("Fetching supporting passages (%d)…", len(candidate_refs))
         async with httpx.AsyncClient(timeout=20) as client:
             for ref in candidate_refs:
                 try:
@@ -188,18 +304,20 @@ async def analyze_claim(args: AnalyzeClaimArgs, ctx: Context) -> dict[str, Any]:
                         passages.append(passage)
                 except Exception as e:
                     await ctx.warning(f"Failed fetching '{ref}': {e}")
-                    log.exception("Fetch failed for supporting '%s'", ref)
+                    logger.exception("Fetch failed for supporting '%s'", ref)
 
     # Step 3: propose challenging/contradicting verses via LLM
     challengers: list[str] = []
     if include_challengers:
-        log.info("Proposing challenging refs via LLM…")
+        logger.info("Proposing challenging refs via LLM…")
         challengers = await propose_challengers(claim, ctx)
+        if not challengers:
+            challengers = _fallback_challenger_refs(claim, settings.DEFAULT_MAX_RESULTS)
 
     # Step 4: fetch challengers' passages
     challenging_passages: list[dict[str, Any]] = []
     if include_challengers and challengers:
-        log.info("Fetching challenging passages (%d)…", len(challengers))
+        logger.info("Fetching challenging passages (%d)…", len(challengers))
         async with httpx.AsyncClient(timeout=20) as client:
             for ref in challengers:
                 try:
@@ -211,7 +329,7 @@ async def analyze_claim(args: AnalyzeClaimArgs, ctx: Context) -> dict[str, Any]:
                         challenging_passages.append(passage)
                 except Exception:
                     # Ignore failures silently for challengers
-                    log.debug("Fetch failed for challenger '%s'", ref)
+                    logger.debug("Fetch failed for challenger '%s'", ref)
                     pass
 
     return {
@@ -258,12 +376,16 @@ async def search_candidates_api_bible(
         # Prefer verses list; fallback to passages
         refs: list[str] = []
         for v in data.get("verses", []) or []:
-            # API returns objects with 'reference' and 'verseId' fields
-            ref = v.get("reference") or v.get("verseId")
+            # Prefer human reference; normalize verseId if needed
+            ref = v.get("reference")
+            if not ref:
+                ref = _normalize_api_bible_id(v.get("verseId") or "")
             if ref:
                 refs.append(str(ref))
         for p in data.get("passages", []) or []:
             ref = p.get("reference")
+            if not ref:
+                ref = _normalize_api_bible_id(p.get("id") or "")
             if ref:
                 refs.append(str(ref))
         return refs
@@ -308,6 +430,58 @@ async def propose_challengers(claim: str, ctx: Context) -> list[str]:
         return [p for p in parts if p]
     except Exception:
         return []
+
+
+def _fallback_candidate_refs(claim: str, max_results: int) -> list[str]:
+    """Deterministic, non-LLM heuristics for extracting likely references.
+    Ensures we return something even when API search and sampling are unavailable.
+    """
+    text = claim.lower()
+    refs: list[str] = []
+    if any(w in text for w in ("money", "wealth", "rich")):
+        refs = [
+            "1 Timothy 6:10",
+            "Matthew 6:24",
+            "Proverbs 11:28",
+        ]
+    elif "helps themselves" in text:
+        refs = [
+            "Proverbs 28:26",
+            "Psalm 37:5",
+            "Jeremiah 17:5",
+            "Matthew 6:33",
+        ]
+    else:
+        refs = [
+            "John 3:16",
+            "Psalm 23:1-3",
+            "Matthew 5:9-12",
+        ]
+    return refs[: max(1, int(max_results))]
+
+
+def _fallback_challenger_refs(claim: str, max_results: int) -> list[str]:
+    text = claim.lower()
+    refs: list[str] = []
+    if any(w in text for w in ("money", "wealth", "rich")):
+        refs = [
+            "Matthew 5:9-12",
+            "Luke 12:15",
+            "James 5:1-6",
+        ]
+    elif "helps themselves" in text:
+        refs = [
+            "Ephesians 2:8-9",
+            "Psalm 121:1-2",
+            "Proverbs 3:5-6",
+        ]
+    else:
+        refs = [
+            "Romans 3:23",
+            "Ephesians 2:8-9",
+            "Micah 6:8",
+        ]
+    return refs[: max(1, int(max_results))]
 
 
 async def fetch_passage_with_context(

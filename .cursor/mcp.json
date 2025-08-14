@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "biblefight": {
+            "command": "uv",
+            "args": [
+                "run",
+                "--project",
+                "C:/Users/joelc/Code/mcp-dev/BIBLEFIGHT",
+                "biblefight-mcp"
+            ]
+        }
+    }
+}

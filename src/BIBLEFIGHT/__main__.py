@@ -1,17 +1,27 @@
 from __future__ import annotations
 
+import logging
+import asyncio
 import argparse
 import os
 from .server import mcp
-from .logging_setup import configure_logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("BIBLEFIGHT")
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Run BibleFight MCP server")
     parser.add_argument("--debug", action="store_true", help="Enable DEBUG logging")
-    parser.add_argument("--log-level", default=os.getenv("BIBLEFIGHT_LOG_LEVEL", "INFO"), help="Set log level (INFO, DEBUG, WARNING, ERROR)")
     args = parser.parse_args()
 
-    level = "DEBUG" if args.debug else args.log_level
-    configure_logging(level)
-    mcp.run()
+    logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
+
+    try:
+        asyncio.run(mcp.run_async())
+    except KeyboardInterrupt:
+        logger.info("🛑 Keyboard interrupt received. Shutting down...")
+        exit(0)
+
+if __name__ == "__main__":
+    main()
